@@ -1,0 +1,405 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "FS Dev Git-Diff API",
+    "description": "A mini REST API over Git data. It allows to query repository commit diffs.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/"
+    }
+  ],
+  "paths": {
+    "/repositories/{owner}/{repository}/commits/{oid}": {
+      "get": {
+        "summary": "Get a commit by ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ownerParameter"
+          },
+          {
+            "$ref": "#/components/parameters/repositoryParameter"
+          },
+          {
+            "$ref": "#/components/parameters/oidParameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Metadata about a commit in JSON format.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Commit"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repositories/{owner}/{repository}/commits/{oid}/diff": {
+      "get": {
+        "summary": "Get the diff of a commit",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ownerParameter"
+          },
+          {
+            "$ref": "#/components/parameters/repositoryParameter"
+          },
+          {
+            "$ref": "#/components/parameters/oidParameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of files in the commit, including the diff of each file.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CombinedFileDifference"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "ownerParameter": {
+        "name": "owner",
+        "in": "path",
+        "required": true,
+        "description": "The name of the repository owner.",
+        "schema": {
+          "type": "string",
+          "example": "golemfactory"
+        }
+      },
+      "repositoryParameter": {
+        "name": "repository",
+        "in": "path",
+        "required": true,
+        "description": "The name of the repository.",
+        "schema": {
+          "type": "string",
+          "example": "clay"
+        }
+      },
+      "oidParameter": {
+        "name": "oid",
+        "in": "path",
+        "required": true,
+        "description": "The commit ID (40 character hexadecimal SHA).",
+        "schema": {
+          "type": "string",
+          "example": "a1bf367b3af680b1182cc52bb77ba095764a11f9",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      }
+    },
+    "schemas": {
+      "Owner": {
+        "description": "Repository owner.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "example": {
+          "name": "golemfactory"
+        }
+      },
+      "Repository": {
+        "description": "A repository.",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "example": {
+          "name": "golemfactory"
+        }
+      },
+      "Commit": {
+        "type": "object",
+        "properties": {
+          "oid": {
+            "type": "string",
+            "description": "The object ID of the commit (40-character SHA)."
+          },
+          "subject": {
+            "type": "string",
+            "description": "The subject of the commit (first line of the commit message)."
+          },
+          "body": {
+            "type": "string",
+            "description": "The body of the commit (commit message without the first line)."
+          },
+          "parents": {
+            "description": "The parent commits of this commit (usually just one, except for merge commits).",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "oid": {
+                  "description": "The commit ID (40 character SHA) of the parent commit.",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "parents"
+              ]
+            }
+          },
+          "author": {
+            "description": "The author of the commit.",
+            "$ref": "#/components/schemas/Signature"
+          },
+          "committer": {
+            "description": "The committer of the commit.",
+            "$ref": "#/components/schemas/Signature"
+          }
+        },
+        "required": [
+          "oid",
+          "subject",
+          "body",
+          "author",
+          "committer",
+          "parents"
+        ],
+        "example": {
+          "oid": "a1bf367b3af680b1182cc52bb77ba095764a11f9",
+          "message": "repo-updater: Use config value repoListUpdateInterval (#14983)\n\nThis value was previously used to specify how frequently we would sync\r\nwith code hosts so it makes sense to reuse it to set a lower bound on\r\nhow often we sync now that we have backoff logic.",
+          "author": {
+            "name": "Ryan Slade",
+            "date": "2020-10-22T16:45:31+02:00",
+            "email": "ryanslade@gmail.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "date": "2020-10-22T16:45:31+02:00",
+            "email": "noreply@github.com"
+          },
+          "parents": [
+            {
+              "oid": "89600bf602242ef66a741589b5bf784e378e5ead"
+            }
+          ]
+        }
+      },
+      "Signature": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The full name of the person."
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "The email address of the person."
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "A standard ISO8601 date time string of the date and time the person authored or committed the commit, respectively."
+          },
+          "avatarUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "A URL to the avatar to show for this person."
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "date",
+          "avatarUrl"
+        ]
+      },
+      "CombinedFileDifference": {
+        "type": "object",
+        "properties": {
+          "changeKind": {
+            "description": "The kind of change applied to the file.",
+            "type": "string",
+            "enum": [
+              "ADDED",
+              "COPIED",
+              "DELETED",
+              "MODIFIED",
+              "RENAMED",
+              "TYPE_CHANGED"
+            ]
+          },
+          "baseFile": {
+            "description": "The file before the change of the commit.",
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "The path of the file relative to the repository root."
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "headFile": {
+            "description": "The file after the change of the commit.",
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "The path of the file relative to the repository root."
+              }
+            },
+            "required": [
+              "path"
+            ]
+          },
+          "hunks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DiffHunk"
+            }
+          }
+        },
+        "required": [
+          "changeKind",
+          "baseFile",
+          "headFile",
+          "hunks"
+        ],
+        "example": {
+          "changeKind": "MODIFIED",
+          "headFile": {
+            "path": "cmd/repo-updater/repos/syncer.go"
+          },
+          "baseFile": {
+            "path": "cmd/repo-updater/repos/syncer.go"
+          },
+          "hunks": [
+            {
+              "header": "@@ -63,7 +63,7 @@ type Syncer struct {",
+              "lines": [
+                {
+                  "baseLineNumber": 63,
+                  "headLineNumber": 63,
+                  "content": " type RunOptions struct {"
+                },
+                {
+                  "baseLineNumber": 64,
+                  "headLineNumber": 64,
+                  "content": " \tEnqueueInterval func() time.Duration // Defaults to 1 minute"
+                },
+                {
+                  "baseLineNumber": 65,
+                  "headLineNumber": 65,
+                  "content": " \tIsCloud         bool                 // Defaults to false"
+                },
+                {
+                  "baseLineNumber": 69,
+                  "headLineNumber": 68,
+                  "content": " }"
+                },
+                {
+                  "baseLineNumber": 70,
+                  "headLineNumber": 69,
+                  "content": " "
+                }
+              ]
+            },
+            {
+              "header": "@@ -134,7 +134,7 @@ func (s *syncHandler) Handle(ctx context.Context, tx dbworkerstore.Store, record",
+              "lines": [
+                {
+                  "baseLineNumber": 134,
+                  "headLineNumber": 134,
+                  "content": " \t\tstore = ws.With(tx.Handle().DB())"
+                },
+                {
+                  "baseLineNumber": 135,
+                  "headLineNumber": 135,
+                  "content": " \t}"
+                },
+                {
+                  "baseLineNumber": 136,
+                  "headLineNumber": 136,
+                  "content": " "
+                },
+                {
+                  "baseLineNumber": 137,
+                  "headLineNumber": 136,
+                  "content": "-\treturn s.syncer.SyncExternalService(ctx, store, sj.ExternalServiceID, s.minSyncInterval)"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "DiffHunk": {
+        "type": "object",
+        "properties": {
+          "header": {
+            "description": "The header of the hunk as returned by Git, containing some context information for the user.",
+            "type": "string"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "baseLineNumber": {
+                  "type": "integer",
+                  "description": "The line number in the base revision of the file (left side).",
+                  "nullable": true
+                },
+                "headLineNumber": {
+                  "type": "integer",
+                  "description": "The line number in the head revision of the file (right side).",
+                  "nullable": true
+                },
+                "content": {
+                  "type": "string",
+                  "description": "The raw content of this diff line, prefixed with either \"+\", \"-\" or \" \" (a space) depending on the type of change."
+                }
+              },
+              "required": [
+                "baseLineNumber",
+                "headLineNumber",
+                "content"
+              ]
+            }
+          }
+        },
+        "required": [
+          "header",
+          "lines"
+        ]
+      }
+    }
+  }
+}

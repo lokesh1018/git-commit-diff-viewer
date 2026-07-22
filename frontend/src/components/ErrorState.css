@@ -1,0 +1,22 @@
+.error-state {
+  padding: var(--space-lg) var(--page-padding-inline);
+  text-align: center;
+  color: var(--color-body);
+}
+
+.error-state__title {
+  margin: 0 0 var(--space-sm);
+  font-size: var(--font-size-header);
+  font-weight: var(--font-weight-header);
+  line-height: var(--line-height-header);
+  color: var(--color-header);
+}
+
+.error-state__detail {
+  margin: 0;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  color: var(--color-muted);
+  max-width: 30rem;
+  margin-inline: auto;
+}

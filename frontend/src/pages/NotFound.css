@@ -1,0 +1,30 @@
+.not-found {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-lg) var(--page-padding-inline);
+  text-align: center;
+  color: var(--color-body);
+}
+
+.not-found__title {
+  margin: 0 0 8px;
+  font-size: var(--font-size-header);
+  font-weight: var(--font-weight-header);
+  line-height: var(--line-height-header);
+  color: var(--color-body);
+}
+
+.not-found__detail {
+  margin: 0;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  color: var(--color-muted);
+}
+
+.not-found__code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-mono);
+  font-weight: var(--font-weight-mono);
+  color: var(--color-body);
+  word-break: break-all;
+}

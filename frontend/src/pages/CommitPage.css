@@ -1,0 +1,30 @@
+.commit-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--color-page-bg);
+  padding: var(--page-padding-block) var(--page-padding-inline);
+  overflow-x: clip;
+}
+
+/* Horizontally centered at all viewport widths */
+.commit-page__inner {
+  max-width: min(var(--content-max-width), 100%);
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  /* 2rem between commit header (body) and first file link */
+  gap: var(--space-lg);
+}
+
+.commit-page__files {
+  display: flex;
+  flex-direction: column;
+  /* 2rem between each file block */
+  gap: var(--space-lg);
+  margin-top: 0;
+  min-width: 0;
+  width: 100%;
+}

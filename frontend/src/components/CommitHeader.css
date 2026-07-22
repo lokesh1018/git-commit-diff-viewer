@@ -1,0 +1,198 @@
+.commit-header {
+  /* Figma: Background color #FBFDFF */
+  background: var(--color-bg-header);
+  /* No horizontal pad — avatar aligns with file chevrons */
+  padding: var(--space-lg) 0 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.commit-header__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  width: 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+/* Avatar + heading cluster — never stacks; always 0.5rem apart */
+.commit-header__main {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm); /* 0.5rem between profile icon and heading */
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.commit-header__avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--color-border);
+}
+
+.commit-header__left {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.commit-header__subject {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-header);
+  font-weight: var(--font-weight-header);
+  line-height: var(--line-height-header);
+  color: var(--color-header);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Figma: "Authored by" + relative time = muted; name = bold body */
+.commit-header__author {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-body);
+  color: var(--color-muted);
+}
+
+.commit-header__author strong {
+  font-weight: 700;
+  color: var(--color-body);
+}
+
+.commit-header__muted {
+  color: var(--color-muted);
+}
+
+.commit-header__body {
+  margin: var(--space-xs) 0 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-body);
+  color: var(--color-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Right meta: hug content so full SHA stays on one line */
+.commit-header__right {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-xs);
+  text-align: right;
+  margin-left: auto;
+}
+
+/* Figma: "Commited by" + time = muted; name = bold body */
+.commit-header__committer {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-body);
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.commit-header__committer strong {
+  font-weight: 700;
+  color: var(--color-body);
+}
+
+.commit-header__sha-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 0.25em;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-body);
+  line-height: var(--line-height-body);
+  color: var(--color-body);
+  white-space: nowrap;
+}
+
+.commit-header__sha-label {
+  flex-shrink: 0;
+  font-weight: var(--font-weight-body);
+  color: var(--color-muted);
+}
+
+.commit-header__sha-value {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--font-size-link-mono);
+  color: var(--color-body);
+  white-space: nowrap;
+  font-synthesis: weight;
+}
+
+.commit-header__sha-row strong.commit-header__sha-value {
+  font-weight: 700;
+  font-synthesis: weight;
+  text-shadow: 0.4px 0 0 currentColor;
+}
+
+.commit-header__sha-value--link {
+  color: var(--color-link);
+  font-weight: 700;
+  font-synthesis: weight;
+}
+
+/* Mobile/tablet: only the right meta stacks under; avatar+heading stay side-by-side */
+@media (max-width: 56rem) {
+  .commit-header__row {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .commit-header__main {
+    flex: 1 1 100%;
+    gap: var(--space-sm); /* keep 0.5rem on mobile */
+  }
+
+  .commit-header__right {
+    flex: 1 1 100%;
+    width: 100%;
+    align-items: flex-start;
+    text-align: left;
+    /* Align under heading text (after avatar + 0.5rem gap) */
+    padding-left: calc(2.5rem + var(--space-sm));
+    margin-top: 0;
+    margin-left: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .commit-header__committer {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 30rem) {
+  .commit-header {
+    padding-top: var(--space-md);
+  }
+
+  .commit-header__avatar {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .commit-header__right {
+    /* Match smaller avatar + 0.5rem gap */
+    padding-left: calc(2rem + var(--space-sm));
+  }
+
+  .commit-header__subject {
+    font-size: 15px;
+    line-height: 22px;
+  }
+}

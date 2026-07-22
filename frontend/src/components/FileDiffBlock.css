@@ -1,0 +1,127 @@
+.file-diff {
+  display: flex;
+  flex-direction: column;
+  /* 0.25rem between file path header and the code box */
+  gap: var(--space-xs);
+  background: transparent;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.file-diff__header {
+  display: flex;
+  align-items: flex-start;
+  /* 0.25rem between chevron and path */
+  gap: var(--space-xs);
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-link);
+}
+
+.file-diff__header:hover .file-diff__path {
+  text-decoration: underline;
+}
+
+.file-diff__header:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.file-diff__chevron {
+  flex-shrink: 0;
+  display: block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.2rem;
+  transition: transform 0.15s ease;
+}
+
+.file-diff__chevron--expanded {
+  transform: rotate(0deg);
+}
+
+.file-diff__chevron--collapsed {
+  transform: rotate(-90deg);
+}
+
+.file-diff__path {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-mono);
+  font-size: var(--font-size-link-mono);
+  color: var(--color-link);
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* Bordered code box — scrolls horizontally inside; page stays centered */
+.file-diff__body {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-context);
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+}
+
+.file-diff__body::-webkit-scrollbar {
+  height: 0.5rem;
+  width: 0.5rem;
+}
+
+.file-diff__body::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+  border-top: 1px solid var(--color-border);
+}
+
+.file-diff__body::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: 0.25rem;
+  border: 2px solid var(--color-scrollbar-track);
+  background-clip: padding-box;
+}
+
+.file-diff__body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-thumb-hover);
+  border: 2px solid var(--color-scrollbar-track);
+  background-clip: padding-box;
+}
+
+.file-diff__body::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.file-diff__scroll {
+  min-width: 100%;
+  width: max-content;
+}
+
+.file-diff__empty {
+  margin: 0;
+  padding: var(--space-md);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  color: var(--color-muted);
+  width: auto;
+  min-width: 0;
+}
+
+@media (max-width: 30rem) {
+  .file-diff__path {
+    font-size: 12px;
+  }
+
+  .file-diff__empty {
+    padding: var(--space-sm);
+  }
+}

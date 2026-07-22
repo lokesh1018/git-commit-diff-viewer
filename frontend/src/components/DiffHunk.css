@@ -1,0 +1,21 @@
+.diff-hunk__header {
+  padding: var(--space-xs) var(--space-md);
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-mono);
+  font-size: var(--font-size-mono);
+  color: var(--color-muted);
+  background: var(--color-bg-context);
+  white-space: pre;
+  overflow: visible;
+}
+
+.diff-hunk__lines {
+  overflow: visible;
+}
+
+@media (max-width: 40rem) {
+  .diff-hunk__header {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 11px;
+  }
+}
