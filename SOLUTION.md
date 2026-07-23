@@ -47,6 +47,7 @@ Browser (Vite :1234)
 6. **Parent SHA styling:** Link-monospace + link color (`#1C7CD6`), underline on hover; **no navigation** (display-only per single-page scope).
 7. **SPA routing:** Frontend page uses singular `/commit/`; API uses plural `/commits/`. Vite proxies only API paths so hard-refresh / pasted URLs work.
 8. **Validation & errors:** Owner/repo/oid validated before GitHub; centralized Express error middleware returns 400 / 404 / 502 / 503 with clear codes.
+9. **Automated tests:** Backend uses Node’s built-in test runner (parser, validation, GitHub error mapping with mocked `fetch`, HTTP success/error). Frontend uses Vitest (`commitApi`, `useCommit`, date helpers).
 
 ### Intentional deviations from upstream docs
 
@@ -95,11 +96,12 @@ Browser (Vite :1234)
 **How:** Detect truncated responses; page GraphQL diffs.  
 **Why:** Completeness for very large commits without abandoning REST for the common case.
 
-### Contract + parser tests
+### OpenAPI contract checks + golden patch fixtures
 
-**What:** Automated checks that responses match `swagger.json`; golden files for patch parsing.  
-**How:** Vitest/Jest + OpenAPI validator; fixtures from real GitHub patches.  
-**Why:** Prevents schema drift and line-number regressions.
+**What:** Assert live/mapped responses against `swagger.json`; store real GitHub patches as golden files for line-number regressions.  
+**How:** OpenAPI response validator in the backend suite; fixtures under `backend/test/fixtures/`.  
+**Why:** Unit tests already cover parser/validation/GitHub mapping; contract + golden files would catch schema drift and exotic patches.  
+**Status:** Core unit/integration tests are in place (`npm test`); OpenAPI validation and golden fixtures are not yet.
 
 ---
 

@@ -98,11 +98,12 @@ Coverage includes diff parsing, request validation, commit-message splitting, Gi
 ## Project layout
 
 ```
-backend/     Express API + GitHub integration
-frontend/    React (Vite) commit page
+backend/     Express API + GitHub integration (+ test/)
+frontend/    React (Vite) commit page (+ Vitest under src/)
 swagger.json OpenAPI contract
 SOLUTION.md  Design decisions & trade-offs
 README.md    This file
+package.json Root helpers: npm pack + npm test
 ```
 
 ---
@@ -139,8 +140,14 @@ cd review/frontend && npm install && npm run dev
 
 ## Environment
 
-| Variable          | Where          | Purpose                                                 |
-| ----------------- | -------------- | ------------------------------------------------------- |
-| `GITHUB_TOKEN`    | `backend/.env` | Raises GitHub rate limit (never expose to the frontend) |
-| `PORT`            | `backend/.env` | Backend port (default `5000`)                           |
-| `FRONTEND_ORIGIN` | `backend/.env` | CORS origin (default `http://localhost:1234`)           |
+| Variable          | Where          | Purpose                                                                  |
+| ----------------- | -------------- | ------------------------------------------------------------------------ |
+| `GITHUB_TOKEN`    | `backend/.env` | Raises GitHub rate limit (required for practical use; never on frontend) |
+| `PORT`            | `backend/.env` | Backend port (default `5000`)                                            |
+| `FRONTEND_ORIGIN` | `backend/.env` | CORS allowlist when browser calls `:5000` directly (default `:1234`)     |
+
+Optional / not needed for local `npm run dev`:
+
+| Variable        | Where            | Purpose                                                               |
+| --------------- | ---------------- | --------------------------------------------------------------------- |
+| `VITE_API_BASE` | frontend `.env*` | Absolute API origin. Leave unset so Vite proxies relative `/commits/` |
