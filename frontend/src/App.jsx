@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import CommitPage from './pages/CommitPage';
 import NotFound from './pages/NotFound';
 
-/** Example commit from the product brief — used as the app home. */
+/** Default home: example commit shown when opening `/`. */
 const DEFAULT_COMMIT_PATH =
   '/repositories/golemfactory/clay/commit/a1bf367b3af680b1182cc52bb77ba095764a11f9';
 

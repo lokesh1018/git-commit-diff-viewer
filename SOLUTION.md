@@ -44,7 +44,7 @@ Browser (Vite :1234)
    - “Commited by …” only when name **or** date differs from the author
    - Relative time on that line only when the **date** differs from the author date
 6. **Parent SHA styling:** Link-monospace + link color (`#1C7CD6`), underline on hover; **no navigation** (display-only for the single-page MVP).
-7. **SPA routing:** Frontend page uses singular `/commit/`; API uses plural `/commits/`. Vite proxies only API paths so hard-refresh / pasted URLs work.
+7. **SPA routing:** Frontend page uses singular `/commit/`; API uses plural `/commits/`. Vite proxies only API paths so hard-refresh / pasted URLs work. `/` redirects to the default example commit (`golemfactory/clay` … `a1bf367b…`).
 8. **Validation & errors:** Owner/repo/oid validated before GitHub; centralized Express error middleware returns 400 / 404 / 502 / 503 with clear codes.
 9. **Automated tests:** Backend uses Node’s built-in test runner (parser, validation, GitHub error mapping with mocked `fetch`, HTTP success/error). Frontend uses Vitest (`commitApi`, `useCommit`, date helpers).
 
