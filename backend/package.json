@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
+    "free-port": "node scripts/free-port.js",
     "test": "node --test ./test/*.test.js"
   },
   "keywords": [],

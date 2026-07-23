@@ -13,6 +13,13 @@ npm run dev            # or: npm start
 
 Server listens on **http://localhost:5000**.
 
+If you see `EADDRINUSE` / port already in use:
+
+```bash
+npm run free-port
+npm run dev
+```
+
 ## Endpoints
 
 - `GET /repositories/:owner/:repository/commits/:oid`

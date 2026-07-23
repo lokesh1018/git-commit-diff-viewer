@@ -29,7 +29,7 @@ npm install
 npm run dev
 ```
 
-Server: **http://localhost:5000**
+Server: **<http://localhost:5000>**
 
 ### 2. Frontend (port 1234)
 
@@ -39,9 +39,25 @@ npm install
 npm run dev
 ```
 
-App: **http://localhost:1234**
+App: **<http://localhost:1234>**
 
 Vite proxies `/repositories/.../commits/...` (API) to the backend. Page routes use singular `/commit/` and are served by the SPA.
+
+---
+
+## Troubleshooting
+
+### `Port 5000 is already in use` / `EADDRINUSE`
+
+Usually a leftover backend from an earlier terminal (or IDE) is still running. **Keep using port 5000** — do not switch ports unless you also change the Vite proxy.
+
+```bash
+cd backend
+npm run free-port
+npm run dev
+```
+
+Or stop the other backend with **Ctrl+C** in that terminal.
 
 ---
 
