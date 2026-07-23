@@ -15,7 +15,7 @@ async function request(path) {
   } catch {
     // fetch() itself failed (backend down / network) — not an HTTP error status
     const error = new Error(
-      'Unable to reach the API server. Is the backend running on port 5000?',
+      'Unable to reach the API server. Is the backend running on port 5050?',
     );
     error.status = 0;
     error.code = 'NETWORK_ERROR';

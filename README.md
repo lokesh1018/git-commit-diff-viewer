@@ -3,7 +3,7 @@
 Full-stack app that displays GitHub commit metadata and a file-by-file unified diff.
 
 - Frontend on port **1234**
-- Backend API on port **5000** (schema in `swagger.json`)
+- Backend API on port **5050** (schema in `swagger.json`)
 - Shared CSS design tokens for typography, colors, and spacing
 
 See **`SOLUTION.md`** for architecture decisions, limitations, and future work.
@@ -19,7 +19,7 @@ See **`SOLUTION.md`** for architecture decisions, limitations, and future work.
 
 ## Quick start
 
-### 1. Backend (port 5000)
+### 1. Backend (port 5050)
 
 ```bash
 cd backend
@@ -29,7 +29,7 @@ npm install
 npm run dev
 ```
 
-Server: **<http://localhost:5000>**
+Server: **<http://localhost:5050>**
 
 ### 2. Frontend (port 1234)
 
@@ -42,22 +42,6 @@ npm run dev
 App: **<http://localhost:1234>**
 
 Vite proxies `/repositories/.../commits/...` (API) to the backend. Page routes use singular `/commit/` and are served by the SPA.
-
----
-
-## Troubleshooting
-
-### `Port 5000 is already in use` / `EADDRINUSE`
-
-Usually a leftover backend from an earlier terminal (or IDE) is still running. **Keep using port 5000** — do not switch ports unless you also change the Vite proxy.
-
-```bash
-cd backend
-npm run free-port
-npm run dev
-```
-
-Or stop the other backend with **Ctrl+C** in that terminal.
 
 ---
 
@@ -77,7 +61,7 @@ http://localhost:1234/repositories/{owner}/{repository}/commit/{40-char-sha}
 
 ## API
 
-Base URL: `http://localhost:5000/`
+Base URL: `http://localhost:5050/`
 
 | Method | Path                                                    | Response                           |
 | ------ | ------------------------------------------------------- | ---------------------------------- |
@@ -153,8 +137,8 @@ cd review/frontend && npm install && npm run dev
 | Variable          | Where          | Purpose                                                                  |
 | ----------------- | -------------- | ------------------------------------------------------------------------ |
 | `GITHUB_TOKEN`    | `backend/.env` | Raises GitHub rate limit (required for practical use; never on frontend) |
-| `PORT`            | `backend/.env` | Backend port (default `5000`)                                            |
-| `FRONTEND_ORIGIN` | `backend/.env` | CORS allowlist when browser calls `:5000` directly (default `:1234`)     |
+| `PORT`            | `backend/.env` | Backend port (default `5050`)                                            |
+| `FRONTEND_ORIGIN` | `backend/.env` | CORS allowlist when browser calls `:5050` directly (default `:1234`)     |
 
 Optional / not needed for local `npm run dev`:
 

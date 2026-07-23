@@ -10,18 +10,7 @@ const server = app.listen(config.port, () => {
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     console.error(
-      [
-        `[fatal] Port ${config.port} is already in use.`,
-        'A previous backend (or another app) is still running.',
-        '',
-        'Fix (recommended):',
-        '  cd backend',
-        '  npm run free-port',
-        '  npm run dev',
-        '',
-        'Or stop the other terminal where the backend is running (Ctrl+C).',
-        'Do not change PORT unless you also update frontend/vite.config.js proxy targets.',
-      ].join('\n'),
+      `[fatal] Port ${config.port} is already in use. Stop the other process or set PORT.`,
     );
   } else {
     console.error('[fatal] Server failed to start:', err.message);

@@ -11,7 +11,7 @@ const frontendDist = path.resolve(__dirname, '../../frontend/dist');
 function createApp() {
   const app = express();
 
-  // Needed when the browser calls :5000 directly (e.g. VITE_API_BASE).
+  // Needed when the browser calls :5050 directly (e.g. VITE_API_BASE).
   // With the Vite proxy, the browser stays on :1234 so CORS is unused.
   app.use(
     cors({

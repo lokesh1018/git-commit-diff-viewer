@@ -1,5 +1,5 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 /**
  * Proxy only API paths (plural `/commits/`) to the Express backend.
@@ -8,13 +8,13 @@ import react from '@vitejs/plugin-react';
  */
 function repositoriesProxy() {
   return {
-    target: 'http://localhost:5000',
+    target: "http://localhost:5050",
     changeOrigin: true,
     bypass(req) {
-      const url = req.url || '';
+      const url = req.url || "";
       // Singular /commit/ → SPA. Plural /commits/ → proxy to Express (return undefined).
-      if (url.includes('/commit/') && !url.includes('/commits/')) {
-        return '/index.html';
+      if (url.includes("/commit/") && !url.includes("/commits/")) {
+        return "/index.html";
       }
       return undefined;
     },
@@ -23,14 +23,14 @@ function repositoriesProxy() {
 
 export default defineConfig({
   plugins: [react()],
-  appType: 'spa',
+  appType: "spa",
   server: {
     port: 1234,
     strictPort: true,
     proxy: {
-      '/repositories': repositoriesProxy(),
-      '/health': {
-        target: 'http://localhost:5000',
+      "/repositories": repositoriesProxy(),
+      "/health": {
+        target: "http://localhost:5050",
         changeOrigin: true,
       },
     },
@@ -39,9 +39,9 @@ export default defineConfig({
     port: 1234,
     strictPort: true,
     proxy: {
-      '/repositories': repositoriesProxy(),
-      '/health': {
-        target: 'http://localhost:5000',
+      "/repositories": repositoriesProxy(),
+      "/health": {
+        target: "http://localhost:5050",
         changeOrigin: true,
       },
     },

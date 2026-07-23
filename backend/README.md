@@ -11,14 +11,7 @@ npm install
 npm run dev            # or: npm start
 ```
 
-Server listens on **http://localhost:5000**.
-
-If you see `EADDRINUSE` / port already in use:
-
-```bash
-npm run free-port
-npm run dev
-```
+Server listens on **<http://localhost:5050>**.
 
 ## Endpoints
 

@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-App runs on **http://localhost:1234**. API paths (`/commits/`) are proxied to the backend on port 5000; page routes (`/commit/`) stay in the SPA.
+App runs on **<http://localhost:1234>**. API paths (`/commits/`) are proxied to the backend on port 5050; page routes (`/commit/`) stay in the SPA.
 
 ## Route
 

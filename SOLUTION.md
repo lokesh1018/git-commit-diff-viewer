@@ -12,14 +12,14 @@ A full-stack commit viewer:
 
 - **Frontend (React + Vite)** on `http://localhost:1234` with a single route  
   `/repositories/:owner/:repository/commit/:commitSHA`
-- **Backend (Node.js + Express)** on `http://localhost:5000` implementing the API described in `swagger.json`
+- **Backend (Node.js + Express)** on `http://localhost:5050` implementing the API described in `swagger.json`
 - Data is fetched from the **GitHub REST API** and reshaped to those schemas
 
 ```
 Browser (Vite :1234)
   └─ React route …/commit/:commitSHA
-       ├─ GET …/commits/:oid        ──proxy──▶ Express (:5000)
-       └─ GET …/commits/:oid/diff   ──proxy──▶ Express (:5000)
+       ├─ GET …/commits/:oid        ──proxy──▶ Express (:5050)
+       └─ GET …/commits/:oid/diff   ──proxy──▶ Express (:5050)
                                               └─ GitHub REST
                                                    GET /repos/{owner}/{repo}/commits/{ref}
 ```
