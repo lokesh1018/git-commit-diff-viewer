@@ -18,6 +18,7 @@ export function isSameAuthorCommitterDate(author, committer) {
 
   const authorMs = new Date(author.date).getTime();
   const committerMs = new Date(committer.date).getTime();
+  // Unparseable dates: compare raw strings instead of treating as different.
   if (Number.isNaN(authorMs) || Number.isNaN(committerMs)) {
     return author.date === committer.date;
   }

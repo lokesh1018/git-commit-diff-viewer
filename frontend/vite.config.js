@@ -12,8 +12,7 @@ function repositoriesProxy() {
     changeOrigin: true,
     bypass(req) {
       const url = req.url || '';
-      // SPA route: /repositories/:owner/:repo/commit/:sha
-      // API route:  /repositories/:owner/:repo/commits/:oid[/diff]
+      // Singular /commit/ → SPA. Plural /commits/ → proxy to Express (return undefined).
       if (url.includes('/commit/') && !url.includes('/commits/')) {
         return '/index.html';
       }

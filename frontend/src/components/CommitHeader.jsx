@@ -33,7 +33,7 @@ export default function CommitHeader({ commit }) {
   const oid = commit.oid || '';
   const parents = Array.isArray(commit.parents) ? commit.parents : [];
   const showCommitter = shouldShowCommitter(author, committer);
-  // Relative time on committer line only when date differs from author
+  // Show time only when dates differ (name-only mismatch still shows the line).
   const showCommitterTime =
     showCommitter && !isSameAuthorCommitterDate(author, committer);
 

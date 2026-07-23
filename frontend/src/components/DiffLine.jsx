@@ -25,6 +25,7 @@ export default function DiffLine({ line }) {
   const kind = lineKind(content);
   const { prefix, text } = splitContent(content);
 
+  // null line numbers → blank gutter (added / removed / EOF marker lines)
   return (
     <div className={`diff-line diff-line--${kind}`}>
       <span className="diff-line__num diff-line__num--base">

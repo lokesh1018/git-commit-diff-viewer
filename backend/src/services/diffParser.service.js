@@ -6,6 +6,8 @@
  * - Removed lines ("-") increment only base
  * - Added lines ("+") increment only head
  * - Hunk headers "@@ -a,b +c,d @@" reset the counters (a/c are 1-based starts)
+ * - "\\ No newline at end of file" keeps both line numbers null
+ * - Empty string lines are treated as context (" ")
  */
 function parsePatch(patch) {
   if (!patch || typeof patch !== 'string') {
@@ -75,6 +77,7 @@ function parsePatch(patch) {
       });
       baseLine += 1;
     } else if (line.startsWith(' ') || line === '') {
+      // split('\n') can yield ''; treat as a blank context line
       const content = line === '' ? ' ' : line;
       currentHunk.lines.push({
         baseLineNumber: baseLine,
@@ -84,6 +87,7 @@ function parsePatch(patch) {
       baseLine += 1;
       headLine += 1;
     } else if (line.startsWith('\\')) {
+      // e.g. "\ No newline at end of file" — marker only, no line numbers
       currentHunk.lines.push({
         baseLineNumber: null,
         headLineNumber: null,
@@ -115,9 +119,7 @@ function mapChangeKind(status) {
   return STATUS_TO_CHANGE_KIND[status] || 'MODIFIED';
 }
 
-/**
- * Map a GitHub commit file object to CombinedFileDifference.
- */
+/** GitHub file → CombinedFileDifference (null baseFile for ADDED, null headFile for DELETED). */
 function mapFileDifference(file) {
   if (!file || typeof file !== 'object') {
     return {

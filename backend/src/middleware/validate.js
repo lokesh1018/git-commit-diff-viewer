@@ -1,5 +1,6 @@
 const { createError } = require('./errorHandler');
 
+// Lowercase-only; validateOidParam lowercases before testing.
 const OID_PATTERN = /^[0-9a-f]{40}$/;
 // GitHub owner/repo: alphanumeric, hyphens; repo may include dots/underscores
 const OWNER_PATTERN = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$/;
@@ -28,6 +29,7 @@ function validateOidParam(req, res, next) {
     );
   }
 
+  // Normalize so controllers/cache always see lowercase oid.
   req.params.oid = oid;
   return next();
 }

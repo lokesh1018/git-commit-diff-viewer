@@ -54,6 +54,7 @@ export function useCommit(owner, repository, commitSHA) {
       const oid = commitSHA.trim().toLowerCase();
 
       try {
+        // Both routes share one GitHub fetch on the backend (cache + inflight).
         const [commitResult, diffResult] = await Promise.all([
           fetchCommit(owner, repository, oid),
           fetchCommitDiff(owner, repository, oid),
@@ -61,6 +62,7 @@ export function useCommit(owner, repository, commitSHA) {
 
         if (cancelled) return;
 
+        // Swagger: Commit metadata is a one-element array.
         const commitData = Array.isArray(commitResult)
           ? commitResult[0]
           : commitResult;
@@ -88,6 +90,7 @@ export function useCommit(owner, repository, commitSHA) {
 
     load();
 
+    // Ignore late responses if the route params change or the component unmounts.
     return () => {
       cancelled = true;
     };

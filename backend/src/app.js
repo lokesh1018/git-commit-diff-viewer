@@ -11,6 +11,8 @@ const frontendDist = path.resolve(__dirname, '../../frontend/dist');
 function createApp() {
   const app = express();
 
+  // Needed when the browser calls :5000 directly (e.g. VITE_API_BASE).
+  // With the Vite proxy, the browser stays on :1234 so CORS is unused.
   app.use(
     cors({
       origin: config.frontendOrigin,
@@ -22,15 +24,15 @@ function createApp() {
     res.json({ status: 'ok' });
   });
 
-  // API routes must be registered before any SPA catch-all
+  // Register API before any SPA catch-all so /commits/* always hits Express.
   app.use('/repositories', commitRoutes);
 
-  // Optional: serve the Vite production build from Express
+  // Optional: serve frontend/dist from Express (single-origin production).
   if (fs.existsSync(frontendDist)) {
     app.use(express.static(frontendDist));
 
     app.get('*', (req, res, next) => {
-      // Never swallow JSON API paths — fall through to the JSON 404 handler
+      // Plural /commits/ = API → JSON 404. Singular /commit/ = SPA page.
       if (req.path.includes('/commits/')) {
         return next();
       }

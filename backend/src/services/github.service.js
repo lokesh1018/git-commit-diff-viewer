@@ -6,7 +6,7 @@ const { mapFileDifference } = require('./diffParser.service');
 const { OID_PATTERN } = require('../middleware/validate');
 
 const FETCH_TIMEOUT_MS = 15000;
-/** In-flight GitHub requests keyed by cache key — coalesces parallel metadata+diff loads */
+/** Coalesces parallel getCommit + getCommitDiff for the same owner/repo/oid. */
 const inflight = new Map();
 
 function validateOid(oid) {
@@ -29,6 +29,7 @@ function gravatarUrl(email) {
   return `https://www.gravatar.com/avatar/${hash}?d=identicon&s=80`;
 }
 
+/** gitPerson = commit.author/committer; githubUser = top-level author/committer (may be null). */
 function toSignature(gitPerson, githubUser) {
   const email = gitPerson?.email || '';
   return {
@@ -136,6 +137,10 @@ async function githubFetch(pathname) {
   }
 }
 
+/**
+ * Shared GitHub commit payload for both /commits/:oid and /commits/:oid/diff.
+ * Cache + inflight ensure parallel metadata+diff requests hit GitHub once.
+ */
 async function fetchCommitRaw(owner, repository, oid) {
   const normalizedOid = validateOid(oid);
   const cacheKey = `commit:${owner}/${repository}/${normalizedOid}`;
@@ -144,6 +149,7 @@ async function fetchCommitRaw(owner, repository, oid) {
     return cache.get(cacheKey);
   }
 
+  // Await the same promise if another request is already fetching this key.
   if (inflight.has(cacheKey)) {
     return inflight.get(cacheKey);
   }
@@ -170,9 +176,7 @@ async function fetchCommitRaw(owner, repository, oid) {
   return promise;
 }
 
-/**
- * Returns an array with a single Commit object (per swagger contract).
- */
+/** Swagger: response is Commit[] with exactly one element for a given oid. */
 async function getCommit(owner, repository, oid) {
   const data = await fetchCommitRaw(owner, repository, oid);
   const { subject, body } = splitMessage(data.commit?.message);
@@ -191,9 +195,7 @@ async function getCommit(owner, repository, oid) {
   return [commit];
 }
 
-/**
- * Returns CombinedFileDifference[] for the commit.
- */
+/** Maps GitHub `files[]` (+ parsed patches) to CombinedFileDifference[]. */
 async function getCommitDiff(owner, repository, oid) {
   const data = await fetchCommitRaw(owner, repository, oid);
   const files = Array.isArray(data.files) ? data.files : [];

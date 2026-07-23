@@ -1,7 +1,4 @@
-/**
- * Simple in-memory cache keyed by string.
- * Commit data is immutable, so entries are kept indefinitely.
- */
+/** In-process cache. Commits are immutable, so entries have no TTL. */
 class MemoryCache {
   constructor() {
     this.store = new Map();

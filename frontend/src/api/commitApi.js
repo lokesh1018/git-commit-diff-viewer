@@ -1,5 +1,7 @@
+// Empty = same-origin (Vite proxies /repositories/.../commits/ to Express in dev).
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 
+// Case-insensitive precheck; backend still normalizes oid to lowercase.
 const OID_PATTERN = /^[0-9a-f]{40}$/i;
 
 export function isValidCommitSha(sha) {
@@ -11,6 +13,7 @@ async function request(path) {
   try {
     response = await fetch(`${API_BASE}${path}`);
   } catch {
+    // fetch() itself failed (backend down / network) — not an HTTP error status
     const error = new Error(
       'Unable to reach the API server. Is the backend running on port 5000?',
     );
@@ -48,6 +51,7 @@ async function request(path) {
   return payload;
 }
 
+/** API uses plural `/commits/` (page route is singular `/commit/`). */
 export function fetchCommit(owner, repository, oid) {
   return request(
     `/repositories/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/commits/${oid}`,
