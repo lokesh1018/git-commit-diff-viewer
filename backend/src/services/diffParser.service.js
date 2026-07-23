@@ -30,7 +30,6 @@ function parsePatch(patch) {
       baseLine = Number(hunkMatch[1]);
       headLine = Number(hunkMatch[2]);
 
-      // Preserve the full header including any trailing context after @@
       currentHunk = {
         header: line,
         lines: [],
@@ -38,7 +37,6 @@ function parsePatch(patch) {
       continue;
     }
 
-    // Skip file headers (--- / +++ / diff --git / index / Binary files)
     if (
       line.startsWith('diff --git') ||
       line.startsWith('index ') ||
@@ -77,7 +75,6 @@ function parsePatch(patch) {
       });
       baseLine += 1;
     } else if (line.startsWith(' ') || line === '') {
-      // Empty string can appear as a trailing blank context line
       const content = line === '' ? ' ' : line;
       currentHunk.lines.push({
         baseLineNumber: baseLine,
@@ -87,7 +84,6 @@ function parsePatch(patch) {
       baseLine += 1;
       headLine += 1;
     } else if (line.startsWith('\\')) {
-      // "\ No newline at end of file" — include as context-ish without bumping numbers
       currentHunk.lines.push({
         baseLineNumber: null,
         headLineNumber: null,
@@ -113,6 +109,9 @@ const STATUS_TO_CHANGE_KIND = {
 };
 
 function mapChangeKind(status) {
+  if (!status || typeof status !== 'string') {
+    return 'MODIFIED';
+  }
   return STATUS_TO_CHANGE_KIND[status] || 'MODIFIED';
 }
 
@@ -120,9 +119,24 @@ function mapChangeKind(status) {
  * Map a GitHub commit file object to CombinedFileDifference.
  */
 function mapFileDifference(file) {
+  if (!file || typeof file !== 'object') {
+    return {
+      changeKind: 'MODIFIED',
+      baseFile: null,
+      headFile: { path: 'unknown' },
+      hunks: [],
+    };
+  }
+
   const changeKind = mapChangeKind(file.status);
-  const path = file.filename;
-  const previousPath = file.previous_filename || path;
+  const path =
+    typeof file.filename === 'string' && file.filename
+      ? file.filename
+      : 'unknown';
+  const previousPath =
+    typeof file.previous_filename === 'string' && file.previous_filename
+      ? file.previous_filename
+      : path;
 
   let baseFile = null;
   let headFile = null;

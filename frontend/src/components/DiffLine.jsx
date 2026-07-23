@@ -19,8 +19,11 @@ function splitContent(content) {
 }
 
 export default function DiffLine({ line }) {
-  const kind = lineKind(line.content);
-  const { prefix, text } = splitContent(line.content);
+  if (!line || typeof line !== 'object') return null;
+
+  const content = typeof line.content === 'string' ? line.content : ' ';
+  const kind = lineKind(content);
+  const { prefix, text } = splitContent(content);
 
   return (
     <div className={`diff-line diff-line--${kind}`}>

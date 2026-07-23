@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react';
-import { fetchCommit, fetchCommitDiff } from '../api/commitApi';
+import {
+  fetchCommit,
+  fetchCommitDiff,
+  isValidCommitSha,
+} from '../api/commitApi';
+
+function makeError(message, status, code) {
+  const error = new Error(message);
+  error.status = status;
+  error.code = code;
+  return error;
+}
 
 export function useCommit(owner, repository, commitSHA) {
   const [commit, setCommit] = useState(null);
@@ -8,10 +19,6 @@ export function useCommit(owner, repository, commitSHA) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!owner || !repository || !commitSHA) {
-      return undefined;
-    }
-
     let cancelled = false;
 
     async function load() {
@@ -20,16 +27,54 @@ export function useCommit(owner, repository, commitSHA) {
       setCommit(null);
       setDiff(null);
 
+      if (!owner || !repository || !commitSHA) {
+        setError(
+          makeError(
+            'Missing owner, repository, or commit SHA in the URL.',
+            400,
+            'INVALID_ROUTE',
+          ),
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (!isValidCommitSha(commitSHA)) {
+        setError(
+          makeError(
+            `Invalid commit SHA: expected a 40-character hexadecimal string, got "${commitSHA}"`,
+            400,
+            'INVALID_OID',
+          ),
+        );
+        setLoading(false);
+        return;
+      }
+
+      const oid = commitSHA.trim().toLowerCase();
+
       try {
         const [commitResult, diffResult] = await Promise.all([
-          fetchCommit(owner, repository, commitSHA),
-          fetchCommitDiff(owner, repository, commitSHA),
+          fetchCommit(owner, repository, oid),
+          fetchCommitDiff(owner, repository, oid),
         ]);
 
         if (cancelled) return;
 
-        setCommit(Array.isArray(commitResult) ? commitResult[0] : commitResult);
-        setDiff(diffResult);
+        const commitData = Array.isArray(commitResult)
+          ? commitResult[0]
+          : commitResult;
+
+        if (!commitData || typeof commitData !== 'object') {
+          throw makeError(
+            'API returned an empty or invalid commit payload.',
+            502,
+            'INVALID_RESPONSE',
+          );
+        }
+
+        setCommit(commitData);
+        setDiff(Array.isArray(diffResult) ? diffResult : []);
       } catch (err) {
         if (!cancelled) {
           setError(err);

@@ -1,33 +1,51 @@
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 
+const OID_PATTERN = /^[0-9a-f]{40}$/i;
+
+export function isValidCommitSha(sha) {
+  return typeof sha === 'string' && OID_PATTERN.test(sha.trim());
+}
+
 async function request(path) {
   let response;
   try {
     response = await fetch(`${API_BASE}${path}`);
-  } catch (err) {
+  } catch {
     const error = new Error(
       'Unable to reach the API server. Is the backend running on port 5000?',
     );
     error.status = 0;
+    error.code = 'NETWORK_ERROR';
     throw error;
   }
 
-  if (!response.ok) {
-    let payload;
+  let payload = null;
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
     try {
       payload = await response.json();
     } catch {
       payload = null;
     }
+  }
+
+  if (!response.ok) {
     const error = new Error(
       payload?.message || `Request failed with status ${response.status}`,
     );
     error.status = response.status;
-    error.code = payload?.error;
+    error.code = payload?.error || 'REQUEST_FAILED';
     throw error;
   }
 
-  return response.json();
+  if (payload === null) {
+    const error = new Error('API returned a non-JSON response');
+    error.status = 502;
+    error.code = 'INVALID_RESPONSE';
+    throw error;
+  }
+
+  return payload;
 }
 
 export function fetchCommit(owner, repository, oid) {

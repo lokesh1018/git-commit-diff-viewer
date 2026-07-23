@@ -3,17 +3,22 @@ const config = require('../config/env');
 const cache = require('../utils/cache');
 const { createError } = require('../middleware/errorHandler');
 const { mapFileDifference } = require('./diffParser.service');
+const { OID_PATTERN } = require('../middleware/validate');
 
-const OID_PATTERN = /^[0-9a-f]{40}$/;
+const FETCH_TIMEOUT_MS = 15000;
+/** In-flight GitHub requests keyed by cache key — coalesces parallel metadata+diff loads */
+const inflight = new Map();
 
 function validateOid(oid) {
-  if (!OID_PATTERN.test(oid)) {
+  const normalized = String(oid || '').trim().toLowerCase();
+  if (!OID_PATTERN.test(normalized)) {
     throw createError(
       400,
       `Invalid commit SHA: expected a 40-character hexadecimal string, got "${oid}"`,
       'INVALID_OID',
     );
   }
+  return normalized;
 }
 
 function gravatarUrl(email) {
@@ -41,14 +46,12 @@ function splitMessage(message) {
     return { subject: raw, body: '' };
   }
   const subject = raw.slice(0, newlineIndex);
-  // Body is the rest with no leading newline (strip blank line after subject)
   let body = raw.slice(newlineIndex + 1);
   body = body.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/^\n+/, '');
   return { subject, body };
 }
 
 async function githubFetch(pathname) {
-  console.log(`Fetching from GitHub API: ${pathname}`);
   const headers = {
     Accept: 'application/vnd.github+json',
     'User-Agent': 'git-commit-diff-viewer',
@@ -59,19 +62,34 @@ async function githubFetch(pathname) {
     headers.Authorization = `Bearer ${config.githubToken}`;
   }
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
   let response;
   try {
-    response = await fetch(`${config.githubApiBase}${pathname}`, { headers });
+    console.log(`Fetching from GitHub API: ${pathname}`);
+    response = await fetch(`${config.githubApiBase}${pathname}`, {
+      headers,
+      signal: controller.signal,
+    });
   } catch (networkErr) {
+    if (networkErr.name === 'AbortError') {
+      throw createError(
+        503,
+        `GitHub API request timed out after ${FETCH_TIMEOUT_MS / 1000}s`,
+        'GITHUB_TIMEOUT',
+      );
+    }
     throw createError(
       503,
       `Unable to reach GitHub API: ${networkErr.message}`,
       'GITHUB_UNAVAILABLE',
     );
+  } finally {
+    clearTimeout(timer);
   }
 
   if (response.status === 404 || response.status === 422) {
-    // GitHub returns 422 when the SHA is well-formed but no commit exists
     throw createError(404, 'Repository or commit not found', 'NOT_FOUND');
   }
 
@@ -79,10 +97,18 @@ async function githubFetch(pathname) {
     const rateLimited =
       response.headers.get('x-ratelimit-remaining') === '0' ||
       response.status === 429;
-    const message = rateLimited
-      ? 'GitHub API rate limit exceeded. Please try again later or provide a GITHUB_TOKEN.'
-      : 'GitHub API refused the request (403). Check token permissions.';
-    throw createError(rateLimited ? 503 : 502, message, 'GITHUB_RATE_LIMIT');
+    if (rateLimited) {
+      throw createError(
+        503,
+        'GitHub API rate limit exceeded. Please try again later or provide a GITHUB_TOKEN.',
+        'GITHUB_RATE_LIMIT',
+      );
+    }
+    throw createError(
+      502,
+      'GitHub API refused the request (403). Check token permissions.',
+      'GITHUB_FORBIDDEN',
+    );
   }
 
   if (!response.ok) {
@@ -100,23 +126,49 @@ async function githubFetch(pathname) {
     );
   }
 
-  return response.json();
+  try {
+    return await response.json();
+  } catch {
+    throw createError(
+      502,
+      'GitHub API returned an invalid JSON response',
+      'GITHUB_INVALID_RESPONSE',
+    );
+  }
 }
 
 async function fetchCommitRaw(owner, repository, oid) {
-  validateOid(oid);
-  const cacheKey = `commit:${owner}/${repository}/${oid}`;
+  const normalizedOid = validateOid(oid);
+  const cacheKey = `commit:${owner}/${repository}/${normalizedOid}`;
 
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey);
   }
 
-  const data = await githubFetch(
-    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/commits/${oid}`,
-  );
+  if (inflight.has(cacheKey)) {
+    return inflight.get(cacheKey);
+  }
 
-  cache.set(cacheKey, data);
-  return data;
+  const promise = githubFetch(
+    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repository)}/commits/${normalizedOid}`,
+  )
+    .then((data) => {
+      if (!data || typeof data.sha !== 'string') {
+        throw createError(
+          502,
+          'GitHub API returned an unexpected commit payload',
+          'GITHUB_INVALID_RESPONSE',
+        );
+      }
+      cache.set(cacheKey, data);
+      return data;
+    })
+    .finally(() => {
+      inflight.delete(cacheKey);
+    });
+
+  inflight.set(cacheKey, promise);
+  return promise;
 }
 
 /**
@@ -130,7 +182,9 @@ async function getCommit(owner, repository, oid) {
     oid: data.sha,
     subject,
     body,
-    parents: (data.parents || []).map((p) => ({ oid: p.sha })),
+    parents: (data.parents || [])
+      .filter((p) => p && typeof p.sha === 'string')
+      .map((p) => ({ oid: p.sha })),
     author: toSignature(data.commit?.author, data.author),
     committer: toSignature(data.commit?.committer, data.committer),
   };
@@ -143,8 +197,10 @@ async function getCommit(owner, repository, oid) {
  */
 async function getCommitDiff(owner, repository, oid) {
   const data = await fetchCommitRaw(owner, repository, oid);
-  const files = data.files || [];
-  return files.map(mapFileDifference);
+  const files = Array.isArray(data.files) ? data.files : [];
+  return files
+    .filter((file) => file && typeof file === 'object')
+    .map(mapFileDifference);
 }
 
 module.exports = {

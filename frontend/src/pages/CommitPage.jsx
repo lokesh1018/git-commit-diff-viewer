@@ -34,18 +34,40 @@ export default function CommitPage() {
     );
   }
 
+  if (!commit) {
+    return (
+      <div className="commit-page">
+        <div className="commit-page__inner">
+          <ErrorState
+            error={{
+              status: 404,
+              code: 'NOT_FOUND',
+              message: 'No commit data was returned for this URL.',
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const files = Array.isArray(diff) ? diff : [];
+
   return (
     <div className="commit-page">
       <div className="commit-page__inner">
         <CommitHeader commit={commit} />
         <div className="commit-page__files">
-          {(diff || []).map((fileDiff, index) => (
-            <FileDiffBlock
-              key={`${fileDiff.headFile?.path || fileDiff.baseFile?.path}-${index}`}
-              fileDiff={fileDiff}
-              defaultExpanded={index === 0}
-            />
-          ))}
+          {files.length === 0 ? (
+            <p className="commit-page__empty">No files changed in this commit.</p>
+          ) : (
+            files.map((fileDiff, index) => (
+              <FileDiffBlock
+                key={`${fileDiff?.headFile?.path || fileDiff?.baseFile?.path || 'file'}-${index}`}
+                fileDiff={fileDiff}
+                defaultExpanded={index === 0}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

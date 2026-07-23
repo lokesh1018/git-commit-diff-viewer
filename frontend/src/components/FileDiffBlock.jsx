@@ -4,6 +4,7 @@ import chevronIcon from '../assets/chevron.svg';
 import './FileDiffBlock.css';
 
 function filePath(fileDiff) {
+  if (!fileDiff || typeof fileDiff !== 'object') return 'unknown';
   if (fileDiff.headFile?.path) return fileDiff.headFile.path;
   if (fileDiff.baseFile?.path) return fileDiff.baseFile.path;
   return 'unknown';
@@ -11,8 +12,11 @@ function filePath(fileDiff) {
 
 export default function FileDiffBlock({ fileDiff, defaultExpanded = true }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+
+  if (!fileDiff) return null;
+
   const path = filePath(fileDiff);
-  const hunks = fileDiff.hunks || [];
+  const hunks = Array.isArray(fileDiff.hunks) ? fileDiff.hunks : [];
 
   return (
     <section className="file-diff">

@@ -2,16 +2,19 @@ import './ErrorState.css';
 
 export default function ErrorState({ error }) {
   const status = error?.status;
+  const code = error?.code;
   let title = 'Something went wrong';
   let detail = error?.message || 'An unexpected error occurred.';
 
-  if (status === 400) {
-    title = 'Invalid commit SHA';
-  } else if (status === 404) {
+  if (status === 400 || code === 'INVALID_OID' || code === 'INVALID_OWNER') {
+    title = 'Invalid request';
+  } else if (status === 404 || code === 'NOT_FOUND') {
     title = 'Commit not found';
-  } else if (status === 502 || status === 503) {
+  } else if (code === 'GITHUB_RATE_LIMIT') {
+    title = 'GitHub rate limit exceeded';
+  } else if (status === 502 || status === 503 || code === 'GITHUB_TIMEOUT') {
     title = 'GitHub unavailable';
-  } else if (status === 0) {
+  } else if (status === 0 || code === 'NETWORK_ERROR') {
     title = 'Backend unreachable';
   }
 

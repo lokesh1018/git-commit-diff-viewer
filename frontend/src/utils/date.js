@@ -5,9 +5,24 @@ export function shouldShowCommitter(author, committer) {
   if (!author || !committer) return false;
 
   const sameName = author.name === committer.name;
-  const sameDate = author.date === committer.date;
+  const sameDate = isSameAuthorCommitterDate(author, committer);
 
   return !(sameName && sameDate);
+}
+
+/**
+ * True when author and committer timestamps are the same instant.
+ */
+export function isSameAuthorCommitterDate(author, committer) {
+  if (!author?.date || !committer?.date) return false;
+
+  const authorMs = new Date(author.date).getTime();
+  const committerMs = new Date(committer.date).getTime();
+  if (Number.isNaN(authorMs) || Number.isNaN(committerMs)) {
+    return author.date === committer.date;
+  }
+
+  return authorMs === committerMs;
 }
 
 /**
