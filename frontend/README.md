@@ -18,7 +18,7 @@ App runs on **<http://localhost:1234>**. API paths (`/commits/`) are proxied to 
 /repositories/:owner/:repository/commit/:commitSHA
 ```
 
-Example:
+`/` redirects to the default example:
 
 ```
 http://localhost:1234/repositories/golemfactory/clay/commit/a1bf367b3af680b1182cc52bb77ba095764a11f9

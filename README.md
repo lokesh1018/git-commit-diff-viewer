@@ -41,6 +41,12 @@ npm run dev
 
 App: **<http://localhost:1234>**
 
+Opening `/` redirects to the default example commit:
+
+```
+/repositories/golemfactory/clay/commit/a1bf367b3af680b1182cc52bb77ba095764a11f9
+```
+
 Vite proxies `/repositories/.../commits/...` (API) to the backend. Page routes use singular `/commit/` and are served by the SPA.
 
 ---
