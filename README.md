@@ -2,13 +2,11 @@
 
 Full-stack app that displays GitHub commit metadata and a file-by-file unified diff.
 
-Matches:
+- Frontend on port **1234**
+- Backend API on port **5000** (schema in `swagger.json`)
+- Shared CSS design tokens for typography, colors, and spacing
 
-- Frontend route from the coding exercise (port **1234**)
-- Backend API contract: [FS Dev Git-Diff API docs](https://teamfleetstudio.github.io/git-diff-api-doc/) (also mirrored in `swagger.json`)
-- Figma design tokens for typography, colors, and spacing
-
-See **`SOLUTION.md`** for architecture decisions, limitations, and future work (required by the exercise).
+See **`SOLUTION.md`** for architecture decisions, limitations, and future work.
 
 ---
 
@@ -49,8 +47,6 @@ Vite proxies `/repositories/.../commits/...` (API) to the backend. Page routes u
 
 ## Try it
 
-Example from the exercise brief:
-
 ```
 http://localhost:1234/repositories/golemfactory/clay/commit/a1bf367b3af680b1182cc52bb77ba095764a11f9
 ```
@@ -76,7 +72,7 @@ Base URL: `http://localhost:5000/`
 - `oid` must match `^[0-9a-f]{40}$` (case-insensitive; normalized to lowercase)
 - Error responses use JSON `{ "error": "<CODE>", "message": "..." }` with status **400** / **404** / **502** / **503**
 
-Full schema: `swagger.json` or https://teamfleetstudio.github.io/git-diff-api-doc/
+Full schema: `swagger.json`
 
 ---
 
@@ -100,7 +96,7 @@ Coverage includes diff parsing, request validation, commit-message splitting, Gi
 ```
 backend/     Express API + GitHub integration (+ test/)
 frontend/    React (Vite) commit page (+ Vitest under src/)
-swagger.json OpenAPI contract
+swagger.json OpenAPI schema
 SOLUTION.md  Design decisions & trade-offs
 README.md    This file
 package.json Root helpers: npm pack + npm test
@@ -108,13 +104,11 @@ package.json Root helpers: npm pack + npm test
 
 ---
 
-## Packaging / delivery
-
-Per the exercise, either:
+## Packaging
 
 ### Option A — public git URL
 
-Push this repo and share the URL. Reviewers run the steps under **Quick start**.
+Push this repo and share the URL. Recipients run the steps under **Quick start**.
 
 ### Option B — `npm pack`
 

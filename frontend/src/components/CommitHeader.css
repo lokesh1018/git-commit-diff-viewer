@@ -1,5 +1,5 @@
 .commit-header {
-  /* Figma: Background color #FBFDFF */
+  /* Header background #FBFDFF */
   background: var(--color-bg-header);
   /* No horizontal pad — avatar aligns with file chevrons */
   padding: var(--space-lg) 0 0;
@@ -21,7 +21,8 @@
 .commit-header__main {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-sm); /* 0.5rem between profile icon and heading */
+  gap: var(--space-sm);
+  /* 0.5rem between profile icon and heading */
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -51,7 +52,7 @@
   word-break: break-word;
 }
 
-/* Figma: "Authored by" + relative time = muted; name = bold body */
+/* "Authored by" + relative time = muted; name = bold body */
 .commit-header__author {
   margin: var(--space-xs) 0 0;
   font-size: var(--font-size-body);
@@ -91,7 +92,7 @@
   margin-left: auto;
 }
 
-/* Figma: "Commited by" + time = muted; name = bold body */
+/* "Commited by" + time = muted; name = bold body */
 .commit-header__committer {
   margin: 0;
   font-size: var(--font-size-body);
@@ -161,7 +162,8 @@
 
   .commit-header__main {
     flex: 1 1 100%;
-    gap: var(--space-sm); /* keep 0.5rem on mobile */
+    gap: var(--space-sm);
+    /* keep 0.5rem on mobile */
   }
 
   .commit-header__right {

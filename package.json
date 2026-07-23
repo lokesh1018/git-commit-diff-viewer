@@ -2,7 +2,7 @@
   "name": "git-commit-diff-viewer",
   "version": "1.0.0",
   "private": true,
-  "description": "Full-stack GitHub commit diff viewer (Fleet Studio coding exercise)",
+  "description": "Full-stack GitHub commit diff viewer",
   "license": "UNLICENSED",
   "scripts": {
     "pack:solution": "npm pack",

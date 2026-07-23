@@ -1,6 +1,6 @@
 # Frontend — Git Commit Diff Viewer
 
-React + Vite UI that renders a commit header and file-by-file diffs, matching the Figma design tokens.
+React + Vite UI that renders a commit header and file-by-file diffs.
 
 ## Setup
 
@@ -10,7 +10,7 @@ npm install
 npm run dev
 ```
 
-App runs on **http://localhost:1234** and proxies `/repositories/*` to the backend on port 5000.
+App runs on **http://localhost:1234**. API paths (`/commits/`) are proxied to the backend on port 5000; page routes (`/commit/`) stay in the SPA.
 
 ## Route
 

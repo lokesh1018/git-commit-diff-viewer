@@ -1,13 +1,9 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "FS Dev Git-Diff API",
-    "description": "A mini REST API over Git data. It allows to query repository commit diffs. Canonical docs: https://teamfleetstudio.github.io/git-diff-api-doc/",
+    "title": "Git Commit Diff API",
+    "description": "REST API for repository commit metadata and file diffs.",
     "version": "1.0.0"
-  },
-  "externalDocs": {
-    "description": "Published API documentation",
-    "url": "https://teamfleetstudio.github.io/git-diff-api-doc/"
   },
   "servers": [
     {
@@ -306,7 +302,7 @@
             "description": "Human-readable error message."
           },
           "details": {
-            "description": "Optional upstream details (e.g. GitHub error payload)."
+            "description": "Optional extra details (e.g. GitHub error payload)."
           }
         },
         "required": [
