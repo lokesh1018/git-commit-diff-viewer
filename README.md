@@ -1,27 +1,39 @@
 # Git Commit Diff Viewer
 
-Full-stack app that shows GitHub commit metadata and a file-by-file unified diff, matching the provided API contract (`swagger.json`) and Figma design tokens.
+Full-stack app that displays GitHub commit metadata and a file-by-file unified diff.
+
+Matches:
+
+- Frontend route from the coding exercise (port **1234**)
+- Backend API contract: [FS Dev Git-Diff API docs](https://teamfleetstudio.github.io/git-diff-api-doc/) (also mirrored in `swagger.json`)
+- Figma design tokens for typography, colors, and spacing
+
+See **`SOLUTION.md`** for architecture decisions, limitations, and future work (required by the exercise).
+
+---
 
 ## Prerequisites
 
-- Node.js 18+ (uses native `fetch`)
-- A GitHub personal access token with `public_repo` (or `repo` for private repos)
+- **Node.js 18+** (native `fetch`)
+- A GitHub personal access token (`public_repo`, or `repo` for private repos)
 
-## Setup
+---
 
-### 1. Backend
+## Quick start
+
+### 1. Backend (port 5000)
 
 ```bash
 cd backend
-cp .env.example .env   # skip if .env already exists
-# Edit .env and set GITHUB_TOKEN=...
+cp .env.example .env
+# Set GITHUB_TOKEN=ghp_... (or github_pat_...) in .env
 npm install
 npm run dev
 ```
 
-Backend listens on **http://localhost:5000**.
+Server: **http://localhost:5000**
 
-### 2. Frontend
+### 2. Frontend (port 1234)
 
 ```bash
 cd frontend
@@ -29,30 +41,91 @@ npm install
 npm run dev
 ```
 
-Frontend listens on **http://localhost:1234** and proxies API calls to the backend.
+App: **http://localhost:1234**
+
+Vite proxies `/repositories/.../commits/...` (API) to the backend. Page routes use singular `/commit/` and are served by the SPA.
+
+---
 
 ## Try it
 
-Open:
+Example from the exercise brief:
 
 ```
 http://localhost:1234/repositories/golemfactory/clay/commit/a1bf367b3af680b1182cc52bb77ba095764a11f9
 ```
 
-Or any other public commit:
+Any public commit:
 
 ```
 http://localhost:1234/repositories/{owner}/{repository}/commit/{40-char-sha}
 ```
 
+---
+
 ## API
 
-| Method | Path                                                    | Description                             |
-| ------ | ------------------------------------------------------- | --------------------------------------- |
-| GET    | `/repositories/{owner}/{repository}/commits/{oid}`      | Commit metadata (array of one `Commit`) |
-| GET    | `/repositories/{owner}/{repository}/commits/{oid}/diff` | File diffs (`CombinedFileDifference[]`) |
-| GET    | `/health`                                               | Liveness check                          |
+Base URL: `http://localhost:5000/`
 
-`oid` must match `^[0-9a-f]{40}$`.
+| Method | Path                                                    | Response                           |
+| ------ | ------------------------------------------------------- | ---------------------------------- |
+| GET    | `/repositories/{owner}/{repository}/commits/{oid}`      | `Commit[]` (array with one commit) |
+| GET    | `/repositories/{owner}/{repository}/commits/{oid}/diff` | `CombinedFileDifference[]`         |
+| GET    | `/health`                                               | `{ "status": "ok" }`               |
 
-See `swagger.json` for the full schema and `SOLUTION.md` for architecture notes.
+- `oid` must match `^[0-9a-f]{40}$` (case-insensitive; normalized to lowercase)
+- Error responses use JSON `{ "error": "<CODE>", "message": "..." }` with status **400** / **404** / **502** / **503**
+
+Full schema: `swagger.json` or https://teamfleetstudio.github.io/git-diff-api-doc/
+
+---
+
+## Project layout
+
+```
+backend/     Express API + GitHub integration
+frontend/    React (Vite) commit page
+swagger.json OpenAPI contract
+SOLUTION.md  Design decisions & trade-offs
+README.md    This file
+```
+
+---
+
+## Packaging / delivery
+
+Per the exercise, either:
+
+### Option A — public git URL
+
+Push this repo and share the URL. Reviewers run the steps under **Quick start**.
+
+### Option B — `npm pack`
+
+From the **repository root**:
+
+```bash
+npm pack
+```
+
+This uses the root `package.json` `files` whitelist so `node_modules`, `.env`, and build artifacts are excluded. Send the resulting `.tgz` archive.
+
+To unpack and run:
+
+```bash
+mkdir review && tar -xzf git-commit-diff-viewer-1.0.0.tgz -C review --strip-components=1
+cd review/backend && cp .env.example .env   # add GITHUB_TOKEN
+npm install && npm run dev
+# new terminal
+cd review/frontend && npm install && npm run dev
+```
+
+---
+
+## Environment
+
+| Variable          | Where          | Purpose                                                 |
+| ----------------- | -------------- | ------------------------------------------------------- |
+| `GITHUB_TOKEN`    | `backend/.env` | Raises GitHub rate limit (never expose to the frontend) |
+| `PORT`            | `backend/.env` | Backend port (default `5000`)                           |
+| `FRONTEND_ORIGIN` | `backend/.env` | CORS origin (default `http://localhost:1234`)           |

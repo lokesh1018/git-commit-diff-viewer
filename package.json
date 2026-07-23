@@ -1,0 +1,23 @@
+{
+  "name": "git-commit-diff-viewer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack GitHub commit diff viewer (Fleet Studio coding exercise)",
+  "license": "UNLICENSED",
+  "scripts": {
+    "pack:solution": "npm pack"
+  },
+  "files": [
+    "README.md",
+    "SOLUTION.md",
+    "swagger.json",
+    "backend/**/*",
+    "frontend/**/*",
+    "!**/node_modules/**",
+    "!**/dist/**",
+    "!**/.env",
+    "!**/.env.*",
+    "!**/.vite/**",
+    "!**/coverage/**"
+  ]
+}

@@ -2,8 +2,12 @@
   "openapi": "3.0.0",
   "info": {
     "title": "FS Dev Git-Diff API",
-    "description": "A mini REST API over Git data. It allows to query repository commit diffs.",
+    "description": "A mini REST API over Git data. It allows to query repository commit diffs. Canonical docs: https://teamfleetstudio.github.io/git-diff-api-doc/",
     "version": "1.0.0"
+  },
+  "externalDocs": {
+    "description": "Published API documentation",
+    "url": "https://teamfleetstudio.github.io/git-diff-api-doc/"
   },
   "servers": [
     {
@@ -38,6 +42,46 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid owner, repository, or commit SHA.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Repository or commit not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream GitHub API error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "GitHub unavailable, timed out, or rate-limited.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -66,6 +110,46 @@
                   "items": {
                     "$ref": "#/components/schemas/CombinedFileDifference"
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid owner, repository, or commit SHA.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Repository or commit not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream GitHub API error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "GitHub unavailable, timed out, or rate-limited.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -166,7 +250,7 @@
                 }
               },
               "required": [
-                "parents"
+                "oid"
               ]
             }
           },
@@ -189,16 +273,19 @@
         ],
         "example": {
           "oid": "a1bf367b3af680b1182cc52bb77ba095764a11f9",
-          "message": "repo-updater: Use config value repoListUpdateInterval (#14983)\n\nThis value was previously used to specify how frequently we would sync\r\nwith code hosts so it makes sense to reuse it to set a lower bound on\r\nhow often we sync now that we have backoff logic.",
+          "subject": "repo-updater: Use config value repoListUpdateInterval (#14983)",
+          "body": "This value was previously used to specify how frequently we would sync\nwith code hosts so it makes sense to reuse it to set a lower bound on\nhow often we sync now that we have backoff logic.",
           "author": {
             "name": "Ryan Slade",
             "date": "2020-10-22T16:45:31+02:00",
-            "email": "ryanslade@gmail.com"
+            "email": "ryanslade@gmail.com",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/123456?v=4"
           },
           "committer": {
             "name": "GitHub",
             "date": "2020-10-22T16:45:31+02:00",
-            "email": "noreply@github.com"
+            "email": "noreply@github.com",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/19864447?v=4"
           },
           "parents": [
             {
@@ -206,6 +293,26 @@
             }
           ]
         }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Machine-readable error code (e.g. INVALID_OID, NOT_FOUND, GITHUB_RATE_LIMIT)."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message."
+          },
+          "details": {
+            "description": "Optional upstream details (e.g. GitHub error payload)."
+          }
+        },
+        "required": [
+          "error",
+          "message"
+        ]
       },
       "Signature": {
         "type": "object",

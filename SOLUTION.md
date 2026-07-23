@@ -1,50 +1,114 @@
 # Solution Notes
 
-## Architecture
+This document answers the three review questions from the coding exercise brief.
+
+---
+
+## 1. Approach — architecture, technology choices, intentional deviations
+
+### What we built
+
+A full-stack commit viewer:
+
+- **Frontend (React + Vite)** on `http://localhost:1234` with a single route  
+  `/repositories/:owner/:repository/commit/:commitSHA`
+- **Backend (Node.js + Express)** on `http://localhost:5000` implementing the published API contract  
+  ([FS Dev Git-Diff API](https://teamfleetstudio.github.io/git-diff-api-doc/) / local `swagger.json`)
+- Data is fetched from the **GitHub REST API** and reshaped to the swagger schemas
 
 ```
 Browser (Vite :1234)
-  └─ React route /repositories/:owner/:repository/commit/:commitSHA
-       ├─ GET /repositories/.../commits/:oid        ──proxy──▶ Express (:5000)
-       └─ GET /repositories/.../commits/:oid/diff   ──proxy──▶ Express (:5000)
-                                                              └─ GitHub REST API
-                                                                   GET /repos/{owner}/{repo}/commits/{ref}
+  └─ React route …/commit/:commitSHA
+       ├─ GET …/commits/:oid        ──proxy──▶ Express (:5000)
+       └─ GET …/commits/:oid/diff   ──proxy──▶ Express (:5000)
+                                              └─ GitHub REST
+                                                   GET /repos/{owner}/{repo}/commits/{ref}
 ```
 
-- **Backend** reshapes the GitHub commit payload into the swagger `Commit` and `CombinedFileDifference` shapes. The GitHub token stays server-side only (`backend/.env`).
-- **Frontend** is a single page: commit header + collapsible file diffs. Design tokens live in `frontend/src/styles/tokens.css` as CSS custom properties and are reused by every component.
-- Vite proxies API paths under `/repositories/.../commits/...` (plural) and `/health` to `localhost:5000`. Page routes use singular `/commit/` and are **not** proxied — they fall back to `index.html` so hard refresh / direct paste works. Express can optionally serve `frontend/dist` the same way (API routes registered before the SPA catch-all).
+### Why these technologies
 
-## Key decisions
+| Choice                                 | Why                                                                                                                |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Express + native `fetch`               | Minimal surface area, Node 18+ has fetch built-in, easy to map swagger routes                                      |
+| GitHub **REST** (not GraphQL)          | One commit endpoint already returns metadata + `files[].patch`; enough for the contract without GraphQL complexity |
+| Vite proxy                             | Keeps `GITHUB_TOKEN` server-side only; browser never talks to GitHub                                               |
+| CSS custom properties                  | Figma tokens applied once in `tokens.css`, reused everywhere for pixel consistency                                 |
+| In-memory cache + in-flight coalescing | Commits are immutable; avoids duplicate GitHub calls when the UI loads metadata + diff in parallel                 |
 
-1. **One GitHub call serves both endpoints.** `GET /repos/.../commits/{sha}` already includes `files[].patch`. Both API handlers share `fetchCommitRaw`, which is memoized in an in-memory cache keyed by `owner/repo/oid`. Commit content is immutable, so there is no TTL.
-2. **Unified-diff parsing is custom.** GitHub’s `patch` is walked line-by-line: hunk headers reset base/head counters; ` ` increments both; `-` increments base only; `+` increments head only. Missing patches (binary / oversized files) become `hunks: []` instead of throwing.
-3. **Status mapping** follows the brief: `added→ADDED`, `removed→DELETED`, `modified→MODIFIED`, `renamed→RENAMED`, `copied→COPIED`, `changed→TYPE_CHANGED`.
-4. **Avatar fallback.** Prefer `author.avatar_url` / `committer.avatar_url` from GitHub; otherwise generate a Gravatar identicon from the git email.
-5. **Committer line is conditional.** Shown only when name/email or calendar day differs from the author (matches the Figma annotation).
-6. **File blocks start expanded for the first file only** so the page matches the mixed expanded/collapsed mock without overwhelming large commits.
+### Key implementation decisions
 
-## Deviations / limitations
+1. **One GitHub call powers both backend routes.** Shared `fetchCommitRaw` is cached by `owner/repo/oid` and coalesces concurrent requests.
+2. **Custom unified-diff parser.** Walks `@@` hunk headers and `+` / `-` / ` ` lines to compute `baseLineNumber` / `headLineNumber`. Missing patches (binary / large files) → `hunks: []`.
+3. **Status mapping:** `added→ADDED`, `removed→DELETED`, `modified→MODIFIED`, `renamed→RENAMED`, `copied→COPIED`, `changed→TYPE_CHANGED`.
+4. **Avatars:** GitHub `avatar_url` when present; otherwise Gravatar identicon from email; frontend also falls back if the image fails to load.
+5. **Committer UI (Figma):**
+   - “Commited by …” only when name **or** date differs from the author
+   - Relative time on that line only when the **date** differs from the author date
+6. **Parent SHA styling:** Link-monospace + link color (`#1C7CD6`), underline on hover; **no navigation** (display-only per single-page scope).
+7. **SPA routing:** Frontend page uses singular `/commit/`; API uses plural `/commits/`. Vite proxies only API paths so hard-refresh / pasted URLs work.
+8. **Validation & errors:** Owner/repo/oid validated before GitHub; centralized Express error middleware returns 400 / 404 / 502 / 503 with clear codes.
 
-- GitHub truncates the `files` array on very large commits (API returns at most ~300 files and may omit patches). Those files appear with empty hunks.
-- Relative times use a small word map (`four days ago`) for small counts; larger counts fall back to numerals.
-- In-memory cache is per-process and lost on restart; fine for a local demo, not for multi-instance production.
-- Merge commits show every parent oid; navigating parents is display-only (not linked to other routes in this MVP).
-- The swagger example under `Commit` uses a `message` field, but the schema’s required properties are `subject` + `body`. The implementation follows the schema (and the brief), not the example.
+### Intentional deviations from upstream docs
 
-## Error handling
+- Upstream published **example** historically showed a `message` field; the **schema** (and this app) use `subject` + `body`. Local `swagger.json` example was corrected to match the schema.
+- Upstream swagger `parents.items.required` incorrectly listed `"parents"`; local `swagger.json` requires `"oid"`.
+- Upstream OpenAPI only documents `200` responses; we also return (and document) structured 400/404/502/503 errors for a usable UI.
 
-| Condition                | Status | Notes                                          |
-| ------------------------ | ------ | ---------------------------------------------- |
-| SHA not `^[0-9a-f]{40}$` | 400    | Validated before any GitHub call               |
-| Repo or commit missing   | 404    | Propagated from GitHub 404                     |
-| Rate limit / network     | 503    | Clear message; suggests setting `GITHUB_TOKEN` |
-| Other GitHub failures    | 502    | Surfaces GitHub’s message when available       |
+---
 
-## Future work
+## 2. Known limitations and trade-offs
 
-- Persist cache (Redis) and add ETag / conditional requests.
-- Link commit/parent SHAs to in-app routes.
-- Syntax highlighting and word-level diff for modified lines.
-- GraphQL `commit` + `fileDiffs` for richer rename/copy metadata when REST truncates.
-- Automated contract tests against `swagger.json` and golden-file tests for the patch parser.
+| Limitation                                                                                   | Trade-off / why accepted                                                              |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| GitHub truncates large commits (~300 files) and may omit `patch` for big/binary files        | REST is what the brief allows; empty `hunks: []` is safer than failing the whole page |
+| In-memory cache is per-process (lost on restart, not shared across instances)                | Enough for a local coding exercise; Redis would be overkill for the MVP               |
+| No syntax highlighting / word-level diffs                                                    | Out of Figma scope; monospace + line coloring matches the design                      |
+| Parent SHAs look like links (hover underline) but do not navigate                            | Single-page MVP; navigation listed under future work                                  |
+| Relative times use word forms for small counts (`four days ago`) and numerals for large ones | Close to Figma copy without a heavy i18n library                                      |
+| Rate limits depend on `GITHUB_TOKEN`                                                         | Documented in README; without a token GitHub allows only 60 req/hr                    |
+
+---
+
+## 3. Future work — what, how, and why
+
+### Persist cache (Redis) + conditional requests
+
+**What:** Shared cache across processes with ETag / `If-None-Match` to GitHub.  
+**How:** Redis keyed by `owner/repo/oid`; store GitHub `ETag` alongside payload.  
+**Why:** Survives restarts, works with multiple backend instances, cuts GitHub quota usage.
+
+### Link parent (and commit) SHAs in the UI
+
+**What:** Turn the styled Parent SHA into a real route to `/repositories/.../commit/:sha` (optional for Commit SHA too).  
+**How:** `react-router` `<Link>` on the right-hand meta (hover underline already matches link affordance).  
+**Why:** Natural history exploration without leaving the app.
+
+### Richer diffs (syntax highlight + word diff)
+
+**What:** Highlight language by extension; highlight changed tokens within a line.  
+**How:** `highlight.js` / Shiki for syntax; Myers or similar for word-level hunks.  
+**Why:** Improves readability for large code reviews beyond the Figma MVP.
+
+### GraphQL fallback for truncated REST commits
+
+**What:** When REST omits files/patches, fetch via GitHub GraphQL `commit.file` connections.  
+**How:** Detect truncated responses; page GraphQL diffs.  
+**Why:** Completeness for very large commits without abandoning REST for the common case.
+
+### Contract + parser tests
+
+**What:** Automated checks that responses match `swagger.json`; golden files for patch parsing.  
+**How:** Vitest/Jest + OpenAPI validator; fixtures from real GitHub patches.  
+**Why:** Prevents schema drift and line-number regressions.
+
+---
+
+## Error handling summary
+
+| Condition                         | Status | Code                                                   |
+| --------------------------------- | ------ | ------------------------------------------------------ |
+| Invalid owner / repository / SHA  | 400    | `INVALID_OWNER` / `INVALID_REPOSITORY` / `INVALID_OID` |
+| Repo or commit not found          | 404    | `NOT_FOUND`                                            |
+| GitHub rate limit                 | 503    | `GITHUB_RATE_LIMIT`                                    |
+| GitHub timeout / network down     | 503    | `GITHUB_TIMEOUT` / `GITHUB_UNAVAILABLE`                |
+| Other GitHub / bad payload errors | 502    | `GITHUB_ERROR` / `GITHUB_FORBIDDEN` / …                |
