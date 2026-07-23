@@ -67,7 +67,6 @@ async function githubFetch(pathname) {
 
   let response;
   try {
-    console.log(`Fetching from GitHub API: ${pathname}`);
     response = await fetch(`${config.githubApiBase}${pathname}`, {
       headers,
       signal: controller.signal,
