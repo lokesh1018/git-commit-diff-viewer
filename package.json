@@ -5,7 +5,10 @@
   "description": "Full-stack GitHub commit diff viewer (Fleet Studio coding exercise)",
   "license": "UNLICENSED",
   "scripts": {
-    "pack:solution": "npm pack"
+    "pack:solution": "npm pack",
+    "test": "npm --prefix backend test && npm --prefix frontend test",
+    "test:backend": "npm --prefix backend test",
+    "test:frontend": "npm --prefix frontend test"
   },
   "files": [
     "README.md",

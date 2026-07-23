@@ -40,14 +40,13 @@ function toSignature(gitPerson, githubUser) {
 }
 
 function splitMessage(message) {
-  const raw = message || '';
+  const raw = (message || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   const newlineIndex = raw.indexOf('\n');
   if (newlineIndex === -1) {
     return { subject: raw, body: '' };
   }
   const subject = raw.slice(0, newlineIndex);
-  let body = raw.slice(newlineIndex + 1);
-  body = body.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/^\n+/, '');
+  const body = raw.slice(newlineIndex + 1).replace(/^\n+/, '');
   return { subject, body };
 }
 
@@ -203,10 +202,17 @@ async function getCommitDiff(owner, repository, oid) {
     .map(mapFileDifference);
 }
 
+/** Clears cache + in-flight map (test helper). */
+function resetForTests() {
+  cache.clear();
+  inflight.clear();
+}
+
 module.exports = {
   validateOid,
   getCommit,
   getCommitDiff,
   splitMessage,
   gravatarUrl,
+  resetForTests,
 };

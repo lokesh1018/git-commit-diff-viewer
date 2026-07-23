@@ -80,6 +80,21 @@ Full schema: `swagger.json` or https://teamfleetstudio.github.io/git-diff-api-do
 
 ---
 
+## Tests
+
+```bash
+# from repo root — runs backend + frontend suites
+npm test
+
+# or individually
+npm run test:backend   # Node.js built-in test runner
+npm run test:frontend  # Vitest
+```
+
+Coverage includes diff parsing, request validation, commit-message splitting, GitHub error mapping (mocked), API success/error responses, `useCommit` loading states, and frontend date/SHA helpers.
+
+---
+
 ## Project layout
 
 ```
